@@ -200,6 +200,11 @@ POST /api/appointments
 **Auth APIs**
 Code
 
+POST /api/auth/login
+POST /api/auth/register
+# Screenshots
+(Add screenshots here once generated.)
+
 ---
 
 ## 👤 Author
@@ -207,7 +212,3 @@ Code
 **Pomolefe (MastaBlasta867)**  
 📧 pomolefe1986@gmail.com  
 Distributed AI Engineer (in progress)
-POST /api/auth/login
-POST /api/auth/register
-# Screenshots
-(Add screenshots here once generated.)
