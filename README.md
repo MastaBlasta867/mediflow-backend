@@ -199,6 +199,14 @@ GET /api/appointments/patient/{id}
 POST /api/appointments
 **Auth APIs**
 Code
+
+---
+
+## 👤 Author
+
+**Pomolefe (MastaBlasta867)**  
+📧 pomolefe1986@gmail.com  
+Distributed AI Engineer (in progress)
 POST /api/auth/login
 POST /api/auth/register
 # Screenshots
