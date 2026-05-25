@@ -1,82 +1,42 @@
-package com.project.back_end.services;
+package com.project_back_end.services;
 
-import com.project.back_end.repo.AdminRepository;
-import com.project.back_end.repo.DoctorRepository;
-import com.project.back_end.repo.PatientRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
 import java.util.Date;
 
-@Component
+@Service
 public class TokenService {
 
-    private final AdminRepository adminRepository;
-    private final DoctorRepository doctorRepository;
-    private final PatientRepository patientRepository;
+    private final String SECRET_KEY = "mysecretkey123";
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    public TokenService(AdminRepository adminRepository,
-                        DoctorRepository doctorRepository,
-                        PatientRepository patientRepository) {
-        this.adminRepository = adminRepository;
-        this.doctorRepository = doctorRepository;
-        this.patientRepository = patientRepository;
+    public String generateToken(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .compact();
     }
 
-    // Generate signing key from secret
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    public String extractUsername(String token) {
+        return extractAllClaims(token).getSubject();
     }
 
-    // Generate JWT token for a given email
-    // Generate JWT token for a given email
-public String generateToken(String email) {
-    Date now = new Date();
-    Date expiry = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 days
-
-    return Jwts.builder()
-            .setSubject(email)
-            .setIssuedAt(now)
-            .setExpiration(expiry)
-            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-            .compact();
-}
-
-    // Extract email (subject) from token
-    public String extractEmail(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-        return claims.getSubject();
+    public boolean validateToken(String token, String username) {
+        return extractUsername(token).equals(username) && !isTokenExpired(token);
     }
-    
-    // Validate token for a specific role
-    public boolean validateToken(String token, String role) {
-        try {
-            String email = extractEmail(token);
 
-            switch (role.toLowerCase()) {
-                case "admin":
-                    return adminRepository.findByEmail(email).isPresent();
-                case "doctor":
-                    return doctorRepository.findByEmail(email).isPresent();
-                case "patient":
-                    return patientRepository.findByEmail(email).isPresent();
-                default:
-                    return false;
-            }
-        } catch (Exception e) {
-            return false; // invalid token or parsing error
-        }
+    private boolean isTokenExpired(String token) {
+        return extractAllClaims(token).getExpiration().before(new Date());
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
